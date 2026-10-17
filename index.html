@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <title>Count Trainer</title>
+  <meta name="description" content="Blackjack Hi-Lo card counting and basic strategy trainer">
+  <meta name="theme-color" content="#0a4d2c">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Count Trainer">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/png" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <div id="app">
+    <header class="topbar">
+      <div class="bankroll" aria-label="Bankroll">
+        <span class="label">Bankroll</span>
+        <span id="bankroll" class="value">$1,000</span>
+      </div>
+      <button id="countPill" class="count-pill" aria-label="Show or hide the count">
+        <span class="count-hidden">Count hidden <svg viewBox="0 0 24 24" class="ic"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></span>
+        <span class="count-shown">
+          <span>RC <b id="rc">0</b></span>
+          <span>TC <b id="tc">0.0</b></span>
+          <span class="decks"><b id="decksLeft">6.0</b> dk</span>
+        </span>
+      </button>
+      <nav class="topnav">
+        <button class="icon-btn" data-open="drill" aria-label="Count drill">
+          <svg viewBox="0 0 24 24" class="ic"><rect x="5" y="3" width="11" height="15" rx="2"/><path d="M9 21h10a2 2 0 0 0 2-2V7"/></svg>
+        </button>
+        <button class="icon-btn" data-open="chart" aria-label="Strategy chart">
+          <svg viewBox="0 0 24 24" class="ic"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/></svg>
+        </button>
+        <button class="icon-btn" data-open="stats" aria-label="Stats">
+          <svg viewBox="0 0 24 24" class="ic"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>
+        </button>
+        <button class="icon-btn" data-open="settings" aria-label="Settings">
+          <svg viewBox="0 0 24 24" class="ic"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+        </button>
+      </nav>
+    </header>
+
+    <div class="shoe-bar" aria-hidden="true"><div id="shoeFill" class="shoe-fill"></div><div id="cutMark" class="cut-mark"></div></div>
+
+    <main class="table" id="table">
+      <div class="shoe" id="shoe" aria-hidden="true"><div class="shoe-card"></div></div>
+      <section class="dealer-area">
+        <div class="hand-label"><span>Dealer</span> <b id="dealerTotal"></b></div>
+        <div class="cards" id="dealerCards"></div>
+      </section>
+      <div class="felt-text" aria-hidden="true">
+        <div>BLACKJACK PAYS 3 TO 2</div>
+        <div class="small" id="ruleText">Dealer stands on soft 17</div>
+      </div>
+      <div class="message" id="message" role="status" aria-live="polite">Place your bet</div>
+      <section class="player-area" id="playerHands"></section>
+    </main>
+
+    <div class="toast" id="toast" role="alert"></div>
+
+    <footer class="controls">
+      <div id="betControls" class="panel">
+        <div class="advice" id="betAdvice"></div>
+        <div class="bet-row">
+          <button class="bet-spot" id="betSpot" aria-label="Clear bet">
+            <span class="bet-label">Bet</span>
+            <span class="bet-amount" id="betAmount">$0</span>
+          </button>
+          <div class="chips" id="chips">
+            <button class="chip c5" data-chip="5">5</button>
+            <button class="chip c25" data-chip="25">25</button>
+            <button class="chip c100" data-chip="100">100</button>
+            <button class="chip c500" data-chip="500">500</button>
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn ghost" id="btnClear">Clear</button>
+          <button class="btn ghost" id="btnUseAdvice">Use tip</button>
+          <button class="btn primary" id="btnDeal">Deal</button>
+        </div>
+      </div>
+      <div id="playControls" class="panel" hidden>
+        <div class="btn-grid">
+          <button class="btn act hit" data-act="H">Hit</button>
+          <button class="btn act stand" data-act="S">Stand</button>
+          <button class="btn act double" data-act="D">Double</button>
+          <button class="btn act split" data-act="P">Split</button>
+          <button class="btn act surrender" data-act="R">Surrender</button>
+        </div>
+      </div>
+      <div id="insControls" class="panel" hidden>
+        <div class="ins-q">Dealer shows an ace. Insurance?</div>
+        <div class="btn-row">
+          <button class="btn ghost" id="btnInsNo">No thanks</button>
+          <button class="btn primary" id="btnInsYes">Insure</button>
+        </div>
+      </div>
+      <div id="waitControls" class="panel" hidden><div class="wait">Dealer's turn…</div></div>
+    </footer>
+  </div>
+
+  <!-- Sheets (full-screen panels) -->
+  <section class="sheet" id="sheet-settings" aria-label="Settings" hidden>
+    <header class="sheet-head"><h2>Settings</h2><button class="btn ghost close" data-close>Done</button></header>
+    <div class="sheet-body">
+      <p class="note" id="settingsNote" hidden>Table rules apply from the next hand.</p>
+      <h3>Table rules</h3>
+      <label class="row"><span>Decks <b id="decksVal">6</b></span><input type="range" min="1" max="8" step="1" id="setDecks"></label>
+      <label class="row"><span>Reshuffle at <b id="penVal">75%</b> dealt</span><input type="range" min="50" max="90" step="5" id="setPen"></label>
+      <label class="row switch"><span>Dealer hits soft 17 <small>Off = stands on soft 17</small></span><input type="checkbox" id="setH17"></label>
+      <label class="row switch"><span>Late surrender</span><input type="checkbox" id="setSurrender"></label>
+      <label class="row switch"><span>Double after split</span><input type="checkbox" id="setDAS"></label>
+
+      <h3>Counting</h3>
+      <label class="row switch"><span>Show running &amp; true count</span><input type="checkbox" id="setShowCount"></label>
+      <label class="row"><span>Count quizzes</span>
+        <select id="setQuiz"><option value="0">Off</option><option value="0.15">Sometimes</option><option value="0.35">Often</option><option value="0.7">Very often</option></select>
+      </label>
+      <label class="row switch"><span>Also quiz the true count</span><input type="checkbox" id="setQuizTC"></label>
+
+      <h3>Training</h3>
+      <label class="row switch"><span>Basic strategy trainer <small>Flags wrong moves</small></span><input type="checkbox" id="setTrainer"></label>
+      <label class="row switch"><span>Illustrious 18 deviations <small>Graded by true count</small></span><input type="checkbox" id="setDeviations"></label>
+      <label class="row switch"><span>Bet spread advice</span><input type="checkbox" id="setBetAdvice"></label>
+      <label class="row"><span>Betting unit</span>
+        <select id="setUnit"><option>5</option><option>10</option><option>25</option><option>50</option><option>100</option></select>
+      </label>
+      <label class="row"><span>Max spread</span>
+        <select id="setSpread"><option value="4">1–4</option><option value="8">1–8</option><option value="12">1–12</option><option value="16">1–16</option></select>
+      </label>
+
+      <h3>Feel</h3>
+      <label class="row switch"><span>Sound</span><input type="checkbox" id="setSound"></label>
+      <label class="row switch"><span>Haptics <small>Android only — iPhone Safari doesn't allow vibration</small></span><input type="checkbox" id="setHaptics"></label>
+      <label class="row"><span>Deal speed</span>
+        <select id="setSpeed"><option value="1.6">Relaxed</option><option value="1">Normal</option><option value="0.55">Fast</option></select>
+      </label>
+
+      <h3>Bankroll</h3>
+      <label class="row"><span>Starting bankroll</span>
+        <select id="setStartBank"><option>500</option><option>1000</option><option>5000</option><option>10000</option></select>
+      </label>
+      <button class="btn ghost wide" id="btnResetBank">Reset bankroll &amp; new shoe</button>
+      <button class="btn danger wide" id="btnResetStats">Reset all stats</button>
+
+      <h3>Hi-Lo quick guide</h3>
+      <div class="guide">
+        <p><b>+1</b> for 2, 3, 4, 5, 6 &nbsp; <b>0</b> for 7, 8, 9 &nbsp; <b>−1</b> for 10, J, Q, K, A</p>
+        <p><b>Running count</b> = the sum of every card you've seen since the shuffle.</p>
+        <p><b>True count</b> = running count ÷ decks left in the shoe. Bet more and use the index plays when it's high.</p>
+        <p>The dealer's face-down card is counted only when it's turned over.</p>
+      </div>
+      <p class="tiny">Practice tool only. No real money.</p>
+    </div>
+  </section>
+
+  <section class="sheet" id="sheet-stats" aria-label="Stats" hidden>
+    <header class="sheet-head"><h2>Stats</h2><button class="btn ghost close" data-close>Done</button></header>
+    <div class="sheet-body" id="statsBody"></div>
+  </section>
+
+  <section class="sheet" id="sheet-chart" aria-label="Basic strategy chart" hidden>
+    <header class="sheet-head"><h2>Basic Strategy</h2><button class="btn ghost close" data-close>Done</button></header>
+    <div class="sheet-body" id="chartBody"></div>
+  </section>
+
+  <section class="sheet" id="sheet-drill" aria-label="Count drill" hidden>
+    <header class="sheet-head"><h2>Count Drill</h2><button class="btn ghost close" data-close id="drillClose">Done</button></header>
+    <div class="sheet-body drill-body">
+      <div id="drillSetup">
+        <p class="note">Cards flash one at a time. Keep the Hi-Lo running count in your head, then enter it at the end.</p>
+        <label class="row"><span>Speed <b id="drillSpeedVal">1.0s</b> per card</span><input type="range" min="250" max="2000" step="50" id="drillSpeed"></label>
+        <label class="row"><span>Cards</span>
+          <select id="drillCount"><option>10</option><option selected>20</option><option>30</option><option value="52">Full deck (52)</option></select>
+        </label>
+        <label class="row switch"><span>Two cards at a time</span><input type="checkbox" id="drillPairs"></label>
+        <button class="btn primary wide" id="drillStart">Start drill</button>
+        <p class="tiny" id="drillRecord"></p>
+      </div>
+      <div id="drillStage" hidden>
+        <div class="drill-progress" id="drillProgress">0 / 20</div>
+        <div class="drill-cards" id="drillCards"></div>
+        <button class="btn ghost" id="drillStop">Stop</button>
+      </div>
+      <div id="drillAnswer" hidden>
+        <div class="quiz-q">What's the running count?</div>
+        <div class="keypad-host" id="drillKeypad"></div>
+      </div>
+      <div id="drillResult" hidden>
+        <div class="result-big" id="drillResultText"></div>
+        <div class="drill-review" id="drillReview"></div>
+        <button class="btn primary wide" id="drillAgain">Go again</button>
+      </div>
+    </div>
+  </section>
+
+  <div class="modal" id="quizModal" hidden>
+    <div class="modal-card">
+      <div class="quiz-q" id="quizQ">What's the running count?</div>
+      <div class="quiz-hint" id="quizHint"></div>
+      <div class="keypad-host" id="quizKeypad"></div>
+      <div class="quiz-feedback" id="quizFeedback" hidden></div>
+      <button class="btn primary wide" id="quizContinue" hidden>Continue</button>
+    </div>
+  </div>
+
+  <div class="rotate-msg"><div>↻</div><p>Turn your phone upright to play.</p></div>
+
+  <script src="js/engine.js"></script>
+  <script src="js/strategy.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
